@@ -1,4 +1,13 @@
+// Lexique pour les commandes
+// "1" == START
+// "0" == STOP
+// "2" == CONCERTINA (only possible while we are moving)
+// "3" == ONDULATED (only possible while we are moving)
+
+
+
 import React, { useState } from 'react';
+import axios from 'axios';
 
 import { StyleSheet, Text, TouchableOpacity, View, TextInput, Keyboard } from 'react-native';
 
@@ -19,6 +28,17 @@ const App: React.FC<Props> = () => {
   const [isConcertinaPressed, setIsConcertinaPressed] = useState(false);
   const [isUndulatedPressed, setIsUndulatedPressed] = useState(false);
 
+  function sendRequests(val: string){
+    axios.post('http://192.168.34.121/mode', {
+      "value": val
+    }).then((response) => {
+      console.log(response);
+    }, (error) => {
+      console.log(error);
+    });
+
+  }
+
 
   const handleButtonSetPress = () => {
     const inputNumber = Number(numberInputValue);
@@ -31,16 +51,19 @@ const App: React.FC<Props> = () => {
   const handleButtonStartPress = () => {
     console.log('SNAKE GOING FORWARD')
     setRun(true)
+    sendRequests("1")
   }
 
   const handleButtonStopPress = () => {
     console.log('SNAKE STOPPED')
     setRun(false)
+    sendRequests("0")
   }
 
   const handleButtonConcertina = () => {
     if(run){
       console.log('CONCERTINA')
+      sendRequests("2")
       setIsConcertinaPressed(!isConcertinaPressed);
       setIsUndulatedPressed(false);}
     
@@ -49,6 +72,7 @@ const App: React.FC<Props> = () => {
   const handleButtonUndulated = () => {
     if(run){
       console.log('UNDULATED')
+      sendRequests("3")
       setIsUndulatedPressed(!isUndulatedPressed);
       setIsConcertinaPressed(false);}
   }
@@ -59,6 +83,7 @@ const App: React.FC<Props> = () => {
   }
 
   const handleButtonReset = () => {
+    sendRequests("0")
     setRun(false)
     setIsConcertinaPressed(false);
     setIsUndulatedPressed(false);
