@@ -1,18 +1,9 @@
-// Lexique pour les commandes
-// "1" == START
-// "0" == STOP
-// "2" == CONCERTINA (only possible while we are moving)
-// "3" == ONDULATED (only possible while we are moving)
-
 
 
 import React, { useState } from 'react';
 import axios from 'axios';
 import Slider from '@react-native-community/slider'
-import { StyleSheet, Text, TouchableOpacity, View, TextInput, Keyboard} from 'react-native';
-
-
-//import text from "./text.json";
+import { StyleSheet, Text, TouchableOpacity, View, Alert} from 'react-native';
 
 const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b'
 const MESSAGE_UUID = '6d68efe5-04b6-4a85-abc4-c2670b7bf7fd'
@@ -29,6 +20,7 @@ const App: React.FC<Props> = () => {
   const [isConcertinaPressed, setIsConcertinaPressed] = useState(false);
   const [isUndulatedPressed, setIsUndulatedPressed] = useState(false);
   const [isBackwardsPressed, setIsBackwards] = useState(false)
+  const [isInchwormPressed, setIsInchworm] = useState(false)
 
   function sendRequests(val: string, root: string){
     axios.post('http://192.168.34.121/' + root, {
@@ -41,70 +33,95 @@ const App: React.FC<Props> = () => {
 
   }
 
-
-  // const handleButtonSetPress = () => {
-  //   const inputNumber = Number(numberInputValue);
-  //   if (inputNumber < 10 && inputNumber > 0) {
-  //     setNumberValue(inputNumber);
-  //   }
-  //   Keyboard.dismiss();
-  // };
-
   const handleButtonStartPress = () => {
-    if(isConcertinaPressed || isUndulatedPressed){
-      console.log('SNAKE GOING FORWARD')
+    if(isConcertinaPressed || isUndulatedPressed || isInchwormPressed){
       setRun(true)
-      sendRequests("1", "mode")
+      if(isConcertinaPressed) sendRequests("0", "motion")
+      else if(isUndulatedPressed) sendRequests("1", "motion")
+      else if(isInchwormPressed) sendRequests("2", "motion")
+      sendRequests("1", "mode") //start
+      console.log('START')
     }
+    else createButtonAlert("Please select a motion before starting")
   }
 
   const handleButtonStopPress = () => {
-    console.log('SNAKE STOPPED')
     setRun(false)
     sendRequests("0", "mode")
+    console.log('STOP')
   }
 
   const handleButtonConcertina = () => {
     if(!run){
-      console.log('CONCERTINA')
-      sendRequests("0", "motion")
       setIsConcertinaPressed(!isConcertinaPressed);
-      setIsUndulatedPressed(false);}
-    
+      setIsUndulatedPressed(false)
+      setIsInchworm(false)
+      console.log('CONCERTINA BUTTON ENABLED')
+    }
+    else console.log("Ignoring concertina button pressed...")
   }
 
   const handleButtonUndulated = () => {
     if(!run){
-      console.log('UNDULATED')
-      sendRequests("1", "motion")
       setIsUndulatedPressed(!isUndulatedPressed);
-      setIsConcertinaPressed(false);}
+      setIsConcertinaPressed(false)
+      setIsInchworm(false)
+      console.log('UNDULATED BUTTON ENABLED')
+    }
+    else console.log("Ignoring undulated button pressed...")
+  }
+
+  const handleButtonInchworm = () => {
+    if(!run) {
+      setIsInchworm(!isInchwormPressed)
+      setIsConcertinaPressed(false)
+      setWLSliderValue(5)
+      setFreqSliderValue(5)
+      setAmplSliderValue(30)
+      setIsUndulatedPressed(false)
+      console.log('INCHWORM BUTTON ENABLED')
+    }
+    else console.log("Ignoring inchworm button pressed...")
   }
 
   const handleWLChange = (value: number) => {
-    console.log('new WL value updated')
-    setWLSliderValue(value / 10);
-    sendRequests(String(value), "paramsWL")
+    if(isConcertinaPressed || isUndulatedPressed){
+      console.log('new WL value updated')
+      setWLSliderValue(value / 10);
+      sendRequests(String(value), "paramsWL")
+    }
+    else console.log("Ignoring WaveLength value change")
   }
 
   const handleFreqChange = (value: number) => {
-    console.log('new Freq value updated')
-    setFreqSliderValue(value / 10);
-    sendRequests(String(value/10), "paramsFreq")
+    if(isConcertinaPressed || isUndulatedPressed){
+      console.log('new Freq value updated')
+      setFreqSliderValue(value / 10);
+      sendRequests(String(value/10), "paramsFreq")
+    }
+    else console.log("Ignoring Frequency value change")
   }
 
   const handleAmplChange = (value: number) => {
-    console.log('new Ampl value updated')
-    setAmplSliderValue(value);
-    sendRequests(String(value), "paramsAmpl")
+    if(isConcertinaPressed || isUndulatedPressed){
+      console.log('new Ampl value updated')
+      setAmplSliderValue(value);
+      sendRequests(String(value), "paramsAmpl")
+    }
+    else console.log("Ignoring Amplitude value change")
   }
 
   const handleButtonReset = () => {
-    sendRequests("0", "mode")
+    sendRequests("0", "reset")
     setRun(false)
     setIsBackwards(false)
     setIsConcertinaPressed(false)
     setIsUndulatedPressed(false)
+    setIsInchworm(false)
+    setAmplSliderValue(0)
+    setFreqSliderValue(0)
+    setWLSliderValue(0)
+    console.log("RESET")
   }
 
   const handleBackwards = () => {
@@ -113,6 +130,7 @@ const App: React.FC<Props> = () => {
       setIsBackwards(true)
       sendRequests("0", "direction")
     }
+    else console.log("Ignoring backwards button pressed...")
   }
   
   const handleForward = () => {
@@ -120,16 +138,23 @@ const App: React.FC<Props> = () => {
       console.log("FORWARDS")
       setIsBackwards(false)
       sendRequests("1", "direction")
-
     }
+    else console.log("Ignoring forwards button pressed...")
   }
+
+
+  const createButtonAlert = (message: string) =>
+    Alert.alert("ERROR", message, [
+      {text: 'OK', onPress: () => console.log('OK Pressed')},
+    ]);
 
 
   return (
 
-    <View style={styles.container1}>
+      <View style={styles.container1}>
+
       <TouchableOpacity style={styles.button} onPress={handleButtonReset}>
-        <Text style={styles.buttonText}>Reset</Text>
+          <Text style={styles.buttonText}>Reset</Text>
       </TouchableOpacity>
 
       <Text style={styles.titleMode}>MODE</Text>
@@ -153,6 +178,10 @@ const App: React.FC<Props> = () => {
 
         <TouchableOpacity style={[styles.button, isUndulatedPressed && styles.pressedButton]} onPress={handleButtonUndulated}>
           <Text style={styles.buttonMotion}>Undulated</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={[styles.button, isInchwormPressed && styles.pressedButton]} onPress={handleButtonInchworm}>
+          <Text style={styles.buttonMotion}>Inchworm</Text>
         </TouchableOpacity>
 
       </View>
@@ -179,7 +208,9 @@ const App: React.FC<Props> = () => {
         maximumValue={40}
         step={1}
         value={WLsliderValue}
-        onValueChange={handleWLChange}
+        disabled={run || isInchwormPressed || !(isConcertinaPressed || isUndulatedPressed)}
+        onValueChange={(value) => setWLSliderValue(value/10)}
+        onSlidingComplete={(value) => handleWLChange(value)}
         />
         <Text>Value: {WLsliderValue}</Text>
 
@@ -191,35 +222,26 @@ const App: React.FC<Props> = () => {
         minimumValue={30}
         maximumValue={70}
         step={1}
+        disabled={run || isInchwormPressed || !(isConcertinaPressed || isUndulatedPressed)}
         value={AmplsliderValue}
-        onValueChange={handleAmplChange}
+        onSlidingComplete={(value) => handleAmplChange(value)}
+        onValueChange={(value) => setAmplSliderValue(value)}
         />
         <Text>Value: {AmplsliderValue}</Text>
 
         <Text style={styles.subTitle}>Set Frequency</Text>
 
         <Slider
-        style={{width: 200, height: 40}}
+        value={FreqsliderValue}
+        onValueChange={(value) => setFreqSliderValue(value/10)}
+        onSlidingComplete={(value) => handleFreqChange(value)}
         minimumValue={5}
         maximumValue={40}
         step={1}
-        value={FreqsliderValue}
-        onValueChange={handleFreqChange}
+        style={{width: 200, height: 40}}
+        disabled={run || isInchwormPressed || !(isConcertinaPressed || isUndulatedPressed)}
         />
         <Text>Value: {FreqsliderValue}</Text>
-
-{/* 
-      <TouchableOpacity style={[styles.button, styles.button2]} onPress={handleButtonSetPress}>
-        <Text style={styles.buttonText}>Set WaveLength</Text>
-      </TouchableOpacity>
-
-      <TextInput
-        style={styles.textInput}
-        keyboardType="numeric"
-        value={numberInputValue}
-        onChangeText={handleNumberInputChange}
-      />
-      <Text style={styles.numberValueText}>{`WaveLength value : ${numberInputValue}`}</Text> */}
     </View>
   );
 };
@@ -254,8 +276,8 @@ const styles = StyleSheet.create({
   subTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 16,
-    marginTop: 16,
+    marginBottom: 10,
+    marginTop: 10,
     marginRight: 200,
 
   },
@@ -268,6 +290,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
     marginHorizontal: 15,
   },
+
   button2: {
     backgroundColor: '#2196F3',
   },
