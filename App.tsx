@@ -1,12 +1,11 @@
 
 
-import React, { useState } from 'react';
+//rajouter un user friendly interface pour faire bouger le snake a droite et à gauche
+
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Slider from '@react-native-community/slider'
 import { StyleSheet, Text, TouchableOpacity, View, Alert} from 'react-native';
-
-const SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b'
-const MESSAGE_UUID = '6d68efe5-04b6-4a85-abc4-c2670b7bf7fd'
 
 interface Props { }
 
@@ -21,6 +20,33 @@ const App: React.FC<Props> = () => {
   const [isUndulatedPressed, setIsUndulatedPressed] = useState(false);
   const [isBackwardsPressed, setIsBackwards] = useState(false)
   const [isInchwormPressed, setIsInchworm] = useState(false)
+
+  function receiveRequests() {
+      console.log('Im checking')
+      axios
+        .get('http://192.168.34.121/sensor')
+        .then((response) => {
+          if (response.data === 1) {
+            setRun(false);
+            createButtonAlert('DANGER! Hole ahead! Snake stopped...');
+          } else {
+            console.log('no hole found');
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+  }
+
+  useEffect(() => {
+    if(run){
+      const intervalId = setInterval(receiveRequests, 1000);
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
+    else console.log("No need to check, snake is stopped")
+  }, [run]);
 
   function sendRequests(val: string, root: string){
     axios.post('http://192.168.34.121/' + root, {
@@ -143,10 +169,11 @@ const App: React.FC<Props> = () => {
   }
 
 
-  const createButtonAlert = (message: string) =>
+  const createButtonAlert = (message: string) =>{
     Alert.alert("ERROR", message, [
       {text: 'OK', onPress: () => console.log('OK Pressed')},
     ]);
+  }
 
 
   return (
