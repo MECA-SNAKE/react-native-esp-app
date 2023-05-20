@@ -1,16 +1,17 @@
 
-
 //rajouter un user friendly interface pour faire bouger le snake a droite et à gauche
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Slider from '@react-native-community/slider'
 import { StyleSheet, Text, TouchableOpacity, View, Alert} from 'react-native';
+import Icon from 'react-native-vector-icons/AntDesign';
 
 interface Props { }
 
-
 const App: React.FC<Props> = () => {
+
+  const [showGame, setShowGame] = useState(false)
 
   const [run, setRun] = useState(false)
   const [WLsliderValue, setWLSliderValue] = useState(0.5)
@@ -67,6 +68,7 @@ const App: React.FC<Props> = () => {
       else if(isInchwormPressed) sendRequests("2", "motion")
       sendRequests("1", "mode") //start
       console.log('START')
+      setShowGame(true)
     }
     else createButtonAlert("Please select a motion before starting")
   }
@@ -148,6 +150,9 @@ const App: React.FC<Props> = () => {
     setFreqSliderValue(0)
     setWLSliderValue(0)
     console.log("RESET")
+    if(showGame){
+      setShowGame(false)
+    }
   }
 
   const handleBackwards = () => {
@@ -173,6 +178,55 @@ const App: React.FC<Props> = () => {
     Alert.alert("ERROR", message, [
       {text: 'OK', onPress: () => console.log('OK Pressed')},
     ]);
+  }
+
+
+
+  const handleLeft = () => {
+    console.log("LEFT")
+  }
+
+  const handleRight = () => {
+    console.log("RIGHT")
+  }
+
+
+  if(showGame) {
+    return(
+      <View style={styles.container1}>
+        <TouchableOpacity style={styles.button} onPress={handleButtonReset}>
+          <Text style={styles.buttonText}>Reset</Text>
+        </TouchableOpacity>
+
+          <TouchableOpacity style={styles.roundButton} onPress={handleForward}>
+            <Icon name="up" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+
+        <View style = {styles.arrowButtonContainer}>
+
+          <TouchableOpacity style={styles.roundButton} onPress={handleRight}>
+            <Icon name="left" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.roundButton} onPress={handleForward}>
+            <Text style={styles.buttonText}>STOP</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.roundButton} onPress={handleLeft}>
+            <Icon name="right" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+
+        </View>
+
+      <TouchableOpacity style={styles.roundButton} onPress={handleBackwards}>
+            <Icon name="down" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
+
+      </View>
+
+  
+
+    )
   }
 
 
@@ -349,7 +403,24 @@ const styles = StyleSheet.create({
   },
   pressedButton: {
     backgroundColor: '#1D6403',
-  }
+  },
+
+  arrowButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  roundButton: {
+    backgroundColor: '#2196F3',
+    width: 100,
+    height: 100,
+    borderRadius: 48,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 12,
+  },
+
+
 });
 
 export default App;
