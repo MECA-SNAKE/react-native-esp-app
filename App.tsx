@@ -54,7 +54,7 @@ const App: React.FC<Props> = () => {
     }, [run]);
   */
   function sendRequests(key: string, val: string, root: string) {
-    axios.post('http://192.168.236.121/' + root, {
+    /*axios.post('http://192.168.236.121/' + root, {
       key: val
     }, {
       headers: {
@@ -64,7 +64,7 @@ const App: React.FC<Props> = () => {
       console.log(response);
     }, (error) => {
       console.log(error);
-    });
+    });*/
 
   }
 
@@ -203,7 +203,7 @@ const App: React.FC<Props> = () => {
 
   const handleRight = () => {
     console.log("RIGHT")
-    setOffsetSliderValue((OffsetSliderValue / 10) + 1);
+    setOffsetSliderValue((OffsetSliderValue / 10) + 0.1);
     sendRequests("offset", String((OffsetSliderValue / 10) + 0.1), "params")
     console.log("offset: " + OffsetSliderValue / 10)
   }
@@ -228,15 +228,15 @@ const App: React.FC<Props> = () => {
 
         <View style={styles.arrowButtonContainer}>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleRight}>
+          <TouchableOpacity style={styles.roundButton} onPress={handleLeft}>
             <Icon name="left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleForward}>
+          <TouchableOpacity style={styles.roundButton} onPress={handleButtonStopPress}>
             <Text style={styles.buttonText}>STOP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleLeft}>
+          <TouchableOpacity style={styles.roundButton} onPress={handleRight}>
             <Icon name="right" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
@@ -302,6 +302,20 @@ const App: React.FC<Props> = () => {
       </View>
 
       <Text style={styles.titleMode}>PARAMETERS</Text>
+      <Text style={styles.subTitle}>Set Offset</Text>
+
+      <Slider
+        value={OffsetSliderValue}
+        onValueChange={(value) => setOffsetSliderValue(value / 10)}
+        onSlidingComplete={(value) => handleOffsetChange(value)}
+        minimumValue={-100}
+        maximumValue={100}
+        step={1}
+        style={{ width: 200, height: 40 }}
+        disabled={(isInchwormPressed || isConcertinaPressed) ||
+          (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
+      />
+      <Text>Value: {OffsetSliderValue}</Text>
 
       <Text style={styles.subTitle}>Set WaveLength</Text>
 
@@ -311,7 +325,8 @@ const App: React.FC<Props> = () => {
         maximumValue={30}
         step={5}
         value={WLsliderValue}
-        disabled={isInchwormPressed || isConcertinaPressed}
+        disabled={isInchwormPressed || isConcertinaPressed ||
+          (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
         onValueChange={(value) => setWLSliderValue(value / 10)}
         onSlidingComplete={(value) => handleWLChange(value)}
       />
@@ -325,7 +340,8 @@ const App: React.FC<Props> = () => {
         minimumValue={20}
         maximumValue={70}
         step={1}
-        disabled={isInchwormPressed || isConcertinaPressed}
+        disabled={isInchwormPressed || isConcertinaPressed ||
+          (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
         value={AmplsliderValue}
         onSlidingComplete={(value) => handleAmplChange(value)}
         onValueChange={(value) => setAmplSliderValue(value)}
@@ -342,7 +358,8 @@ const App: React.FC<Props> = () => {
         maximumValue={40}
         step={1}
         style={{ width: 200, height: 40 }}
-        disabled={isInchwormPressed || isConcertinaPressed}
+        disabled={isInchwormPressed || isConcertinaPressed ||
+          (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
       />
       <Text>Value: {FreqsliderValue}</Text>
 
@@ -356,23 +373,10 @@ const App: React.FC<Props> = () => {
         maximumValue={40}
         step={1}
         style={{ width: 200, height: 40 }}
-        disabled={isUndulatedPressed || isConcertinaPressed}
+        disabled={isUndulatedPressed || isConcertinaPressed ||
+          (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
       />
       <Text>Value: {SpeedSliderValue}</Text>
-
-      <Text style={styles.subTitle}>Set Offset</Text>
-
-      <Slider
-        value={OffsetSliderValue}
-        onValueChange={(value) => setOffsetSliderValue(value / 10)}
-        onSlidingComplete={(value) => handleOffsetChange(value)}
-        minimumValue={-100}
-        maximumValue={100}
-        step={1}
-        style={{ width: 200, height: 40 }}
-        disabled={isInchwormPressed || isConcertinaPressed}
-      />
-      <Text>Value: {OffsetSliderValue}</Text>
     </View>
   );
 };
