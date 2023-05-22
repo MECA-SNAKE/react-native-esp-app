@@ -196,16 +196,14 @@ const App: React.FC<Props> = () => {
 
   const handleLeft = () => {
     console.log("LEFT")
-    setOffsetSliderValue((OffsetSliderValue / 10) - 0.1);
-    sendRequests("offset", String((OffsetSliderValue / 10) - 0.1), "params")
-    console.log("offset: " + OffsetSliderValue / 10)
+    setOffsetSliderValue(OffsetSliderValue - 0.1);
+    sendRequests("offset_c", "0", "params")
   }
 
   const handleRight = () => {
     console.log("RIGHT")
-    setOffsetSliderValue((OffsetSliderValue / 10) + 0.1);
-    sendRequests("offset", String((OffsetSliderValue / 10) + 0.1), "params")
-    console.log("offset: " + OffsetSliderValue / 10)
+    setOffsetSliderValue(OffsetSliderValue + 0.1);
+    sendRequests("offset_c", "1", "params")
   }
 
 
