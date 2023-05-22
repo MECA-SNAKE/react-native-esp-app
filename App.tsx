@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Slider from '@react-native-community/slider'
-import { StyleSheet, Text, TouchableOpacity, View, Alert} from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Alert, ScrollView} from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
 
 interface Props { }
@@ -21,6 +21,10 @@ const App: React.FC<Props> = () => {
   const [isUndulatedPressed, setIsUndulatedPressed] = useState(false);
   const [isBackwardsPressed, setIsBackwards] = useState(false)
   const [isInchwormPressed, setIsInchworm] = useState(false)
+  const [isForwardPressed, setIsForwardPressed] = useState(false)
+  const [isLeftPressed, setIsLeftPressed] = useState(false)
+  const [isRightPressed, setIsRightPressed] = useState(false)
+
 
   function receiveRequests() {
       console.log('Im checking')
@@ -62,19 +66,22 @@ const App: React.FC<Props> = () => {
 
   const handleButtonStartPress = () => {
     if(isConcertinaPressed || isUndulatedPressed || isInchwormPressed){
-      setRun(true)
       if(isConcertinaPressed) sendRequests("0", "motion")
       else if(isUndulatedPressed) sendRequests("1", "motion")
       else if(isInchwormPressed) sendRequests("2", "motion")
-      sendRequests("1", "mode") //start
       console.log('START')
       setShowGame(true)
+      setRun(false)
     }
     else createButtonAlert("Please select a motion before starting")
   }
 
   const handleButtonStopPress = () => {
     setRun(false)
+    setIsForwardPressed(false)
+    setIsBackwards(false)
+    setIsLeftPressed(false)
+    setIsRightPressed(false)
     sendRequests("0", "mode")
     console.log('STOP')
   }
@@ -146,6 +153,9 @@ const App: React.FC<Props> = () => {
     setIsConcertinaPressed(false)
     setIsUndulatedPressed(false)
     setIsInchworm(false)
+    setIsRightPressed(false)
+    setIsLeftPressed(false)
+    setIsForwardPressed(false)
     setAmplSliderValue(0)
     setFreqSliderValue(0)
     setWLSliderValue(0)
@@ -159,6 +169,8 @@ const App: React.FC<Props> = () => {
     if(!run){
       console.log("BACKWARDS")
       setIsBackwards(true)
+      setIsForwardPressed(false)
+      setRun(true)
       sendRequests("0", "direction")
     }
     else console.log("Ignoring backwards button pressed...")
@@ -168,6 +180,8 @@ const App: React.FC<Props> = () => {
     if(!run){
       console.log("FORWARDS")
       setIsBackwards(false)
+      setIsForwardPressed(true)
+      setRun(true)
       sendRequests("1", "direction")
     }
     else console.log("Ignoring forwards button pressed...")
@@ -183,11 +197,23 @@ const App: React.FC<Props> = () => {
 
 
   const handleLeft = () => {
-    console.log("LEFT")
+    if(run){
+      setIsRightPressed(false)
+      setIsLeftPressed(true);
+      sendRequests("2", "direction")
+      console.log("LEFT")
+    }
+    else console.log("ignoring left, snake is stopped")
   }
 
   const handleRight = () => {
-    console.log("RIGHT")
+    if(run){
+      setIsLeftPressed(false)
+      sendRequests("3", "direction")
+      setIsRightPressed(true)
+      console.log("RIGHT")
+    }
+    else console.log("ignoring right, snake is stopped")
   }
 
 
@@ -198,27 +224,27 @@ const App: React.FC<Props> = () => {
           <Text style={styles.buttonText}>Reset</Text>
         </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleForward}>
+          <TouchableOpacity style={[styles.roundButton, isForwardPressed && styles.pressedButton]} onPress={handleForward}>
             <Icon name="up" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
         <View style = {styles.arrowButtonContainer}>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleRight}>
+          <TouchableOpacity style={[styles.roundButton, isLeftPressed && styles.pressedButton]} onPress={handleLeft}>
             <Icon name="left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleForward}>
+          <TouchableOpacity style={[styles.roundButton, !run && styles.pressedButton]} onPress={handleButtonStopPress}>
             <Text style={styles.buttonText}>STOP</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleLeft}>
+          <TouchableOpacity style={[styles.roundButton, isRightPressed && styles.pressedButton]} onPress={handleRight}>
             <Icon name="right" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
         </View>
 
-      <TouchableOpacity style={styles.roundButton} onPress={handleBackwards}>
+      <TouchableOpacity style={[styles.roundButton, isBackwardsPressed && styles.pressedButton]} onPress={handleBackwards}>
             <Icon name="down" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
@@ -232,7 +258,8 @@ const App: React.FC<Props> = () => {
 
   return (
 
-      <View style={styles.container1}>
+    <ScrollView>
+      <View style={[styles.container1, { marginTop: 80, marginBottom: 80, marginLeft: 30, marginRight: 30 }]}>
 
       <TouchableOpacity style={styles.button} onPress={handleButtonReset}>
           <Text style={styles.buttonText}>Reset</Text>
@@ -324,6 +351,7 @@ const App: React.FC<Props> = () => {
         />
         <Text>Value: {FreqsliderValue}</Text>
     </View>
+  </ScrollView>
   );
 };
 
