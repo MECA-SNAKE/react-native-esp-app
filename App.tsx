@@ -1,11 +1,14 @@
 
-//rajouter un user friendly interface pour faire bouger le snake a droite et à gauche
+//3 boutons pour changer le motion en mode showgame
+//si ondulated on a tous les boutons
+///si concertina, juste start and stop --> OK
+//inchworm: no left and right --> OK
 
 import React from 'react';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import Slider from '@react-native-community/slider'
-import { StyleSheet, Text, TouchableOpacity, View, Alert } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View, Alert, ScrollView } from 'react-native';
 import Icon from 'react-native-vector-icons/AntDesign';
 
 interface Props { }
@@ -25,6 +28,8 @@ const App: React.FC<Props> = () => {
   const [isBackwardsPressed, setIsBackwards] = useState(false)
   const [isForwardPressed, setIsForward] = useState(false)
   const [isInchwormPressed, setIsInchworm] = useState(false)
+  const [isLeftPressed, setIsLeftPressed] = useState(false)
+  const [isRightPressed, setIsRightPressed] = useState(false)
 
   function receiveRequests() {
     console.log('Im checking')
@@ -69,8 +74,8 @@ const App: React.FC<Props> = () => {
   }
 
   const handleButtonStartPress = () => {
-    if ((isConcertinaPressed || isUndulatedPressed || isInchwormPressed)
-      && isBackwardsPressed || isForwardPressed) {
+    if (((isUndulatedPressed || isInchwormPressed)
+      && (isBackwardsPressed || isForwardPressed)) || isConcertinaPressed) {
       setRun(true)
       sendRequests("value", "1", "mode") //start
       console.log('START')
@@ -79,10 +84,15 @@ const App: React.FC<Props> = () => {
     else createButtonAlert("Please select a motion and a direction before starting!")
   }
 
-  const handleButtonStopPress = () => { //TODO: HANDLE STOP ON SHOWGAME!
-    setRun(false)
-    sendRequests("value", "0", "mode")
-    console.log('STOP')
+  const handleButtonStopStartPress = () => { //TODO: HANDLE STOP ON SHOWGAME!
+    if(run) {
+      sendRequests("value", "0", "mode")
+      setRun(false)
+      console.log("STOP")}
+    else {
+      sendRequests("value", "1", "mode")
+      setRun(true)
+      console.log('START')}
   }
 
   const handleButtonConcertina = () => {
@@ -164,8 +174,10 @@ const App: React.FC<Props> = () => {
   const handleButtonReset = () => {
     sendRequests("value", "0", "reset")
     setRun(false)
-    setIsBackwards(false)
+    setIsRightPressed(false)
+    setIsLeftPressed(false)
     setIsForward(false)
+    setIsBackwards(false)
     setIsConcertinaPressed(false)
     setIsUndulatedPressed(false)
     setIsInchworm(false)
@@ -195,15 +207,32 @@ const App: React.FC<Props> = () => {
   }
 
   const handleLeft = () => {
-    console.log("LEFT")
-    setOffsetSliderValue(OffsetSliderValue - 0.1);
-    sendRequests("offset_c", "0", "params")
+    setIsRightPressed(false)
+    if(isLeftPressed){
+      setIsLeftPressed(false)
+      sendRequests("value", "1", "direction")
+    }
+    else {
+      console.log("LEFT")
+      setIsLeftPressed(true)
+      setIsRightPressed(false)
+      setOffsetSliderValue(OffsetSliderValue - 0.1)
+      sendRequests("offset_c", "0", "params")
+    }
   }
 
   const handleRight = () => {
-    console.log("RIGHT")
-    setOffsetSliderValue(OffsetSliderValue + 0.1);
-    sendRequests("offset_c", "1", "params")
+    if(isRightPressed){
+      setIsRightPressed(false)
+      sendRequests("value", "1", "direction")
+    }
+    else {
+      setIsRightPressed(true)
+      setIsLeftPressed(false)
+      console.log("RIGHT")
+      setOffsetSliderValue(OffsetSliderValue + 0.1)
+      sendRequests("offset_c", "1", "params")
+    }
   }
 
 
@@ -220,27 +249,35 @@ const App: React.FC<Props> = () => {
           <Text style={styles.buttonText}>Reset</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.roundButton} onPress={handleForward}>
+        <TouchableOpacity style={[styles.roundButton, isForwardPressed && styles.pressedButton, isConcertinaPressed && styles.disabledButton]}
+          onPress={handleForward}
+          disabled={isConcertinaPressed}>
           <Icon name="up" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
         <View style={styles.arrowButtonContainer}>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleLeft}>
+          <TouchableOpacity style={[styles.roundButton, isLeftPressed && styles.pressedButton, (isInchwormPressed || isConcertinaPressed) && styles.disabledButton]}
+            onPress={handleLeft}
+            disabled = {isInchwormPressed || isConcertinaPressed}>
             <Icon name="left" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleButtonStopPress}>
-            <Text style={styles.buttonText}>STOP</Text>
+          <TouchableOpacity style={styles.roundButton} onPress={handleButtonStopStartPress}>
+            <Text style={styles.buttonText}>{run ? 'STOP' : 'START'}</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.roundButton} onPress={handleRight}>
+          <TouchableOpacity style={[styles.roundButton, isRightPressed && styles.pressedButton, (isInchwormPressed || isConcertinaPressed) && styles.disabledButton]}
+            onPress={handleRight}
+            disabled = {isInchwormPressed || isConcertinaPressed}>
             <Icon name="right" size={24} color="#FFFFFF" />
           </TouchableOpacity>
 
         </View>
 
-        <TouchableOpacity style={styles.roundButton} onPress={handleBackwards}>
+        <TouchableOpacity style={[styles.roundButton, isBackwardsPressed && styles.pressedButton, isConcertinaPressed && styles.disabledButton]}
+          onPress={handleBackwards}
+          disabled= {isConcertinaPressed}>
           <Icon name="down" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
@@ -251,8 +288,9 @@ const App: React.FC<Props> = () => {
 
 
   return (
+    <ScrollView>
 
-    <View style={styles.container1}>
+      <View style={[styles.container1, { marginTop: 80, marginBottom: 80, marginLeft: 30, marginRight: 30 }]}>
 
       <TouchableOpacity style={styles.button} onPress={handleButtonReset}>
         <Text style={styles.buttonText}>Reset</Text>
@@ -263,10 +301,6 @@ const App: React.FC<Props> = () => {
       <View style={styles.containerButtons}>
         <TouchableOpacity style={[styles.button, run && styles.pressedButton]} onPress={handleButtonStartPress}>
           <Text style={styles.buttonText}>Start</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, !run && styles.pressedButton]} onPress={handleButtonStopPress}>
-          <Text style={styles.buttonText}>STOP</Text>
         </TouchableOpacity>
       </View>
 
@@ -289,11 +323,15 @@ const App: React.FC<Props> = () => {
 
       <Text style={styles.titleMode}>DIRECTION</Text>
       <View style={styles.containerButtons}>
-        <TouchableOpacity style={[styles.button, isBackwardsPressed && styles.pressedButton]} onPress={handleBackwards}>
+        <TouchableOpacity style={[styles.button, isBackwardsPressed && styles.pressedButton, isConcertinaPressed && styles.disabledButton]}
+          onPress={handleBackwards}
+          disabled={isConcertinaPressed}>
           <Text style={styles.buttonMotion}>Backwards</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={[styles.button, isForwardPressed && styles.pressedButton]} onPress={handleForward}>
+        <TouchableOpacity style={[styles.button, isForwardPressed && styles.pressedButton, isConcertinaPressed && styles.disabledButton]}
+          onPress={handleForward}
+          disabled={isConcertinaPressed}>
           <Text style={styles.buttonMotion}>Forward</Text>
         </TouchableOpacity>
 
@@ -376,6 +414,7 @@ const App: React.FC<Props> = () => {
       />
       <Text>Value: {SpeedSliderValue}</Text>
     </View>
+    </ScrollView>
   );
 };
 
@@ -470,6 +509,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     margin: 12,
+  },
+  disabledButton: {
+    opacity: 0,
   },
 
 
