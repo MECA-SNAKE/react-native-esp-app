@@ -54,8 +54,9 @@ const App: React.FC<Props> = () => {
     }, [run]);
   */
   function sendRequests(key: string, val: string, root: string) {
-    /*axios.post('http://192.168.236.121/' + root, {
-      key: val
+
+    axios.post('http://192.168.236.121/' + root, {
+      [key]: val
     }, {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -64,7 +65,7 @@ const App: React.FC<Props> = () => {
       console.log(response);
     }, (error) => {
       console.log(error);
-    });*/
+    });
 
   }
 
@@ -74,12 +75,13 @@ const App: React.FC<Props> = () => {
       setRun(true)
       sendRequests("value", "1", "mode") //start
       console.log('START')
-      setShowGame(true)
+      //setShowGame(true)
     }
     else createButtonAlert("Please select a motion and a direction before starting!")
   }
 
-  const handleButtonStopPress = () => { //TODO: HANDLE STOP ON SHOWGAME!
+  const handleButtonStopPress = () => {
+    if (run == false) return
     setRun(false)
     sendRequests("value", "0", "mode")
     console.log('STOP')
@@ -175,9 +177,9 @@ const App: React.FC<Props> = () => {
     setSpeedSliderValue(1)
     setOffsetSliderValue(0)
     console.log("RESET")
-    if (showGame) {
+    /*if (showGame) {
       setShowGame(false)
-    }
+    }*/
   }
 
   const handleBackwards = () => {
@@ -196,13 +198,11 @@ const App: React.FC<Props> = () => {
 
   const handleLeft = () => {
     console.log("LEFT")
-    setOffsetSliderValue(OffsetSliderValue - 0.1);
     sendRequests("offset_c", "0", "params")
   }
 
   const handleRight = () => {
     console.log("RIGHT")
-    setOffsetSliderValue(OffsetSliderValue + 0.1);
     sendRequests("offset_c", "1", "params")
   }
 
@@ -312,6 +312,7 @@ const App: React.FC<Props> = () => {
         style={{ width: 200, height: 40 }}
         disabled={(isInchwormPressed || isConcertinaPressed) ||
           (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
+
       />
       <Text>Value: {OffsetSliderValue}</Text>
 
@@ -360,7 +361,7 @@ const App: React.FC<Props> = () => {
           (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
       />
       <Text>Value: {FreqsliderValue}</Text>
-
+      {/*
       <Text style={styles.subTitle}>Set Speed Inchworm</Text>
 
       <Slider
@@ -375,6 +376,7 @@ const App: React.FC<Props> = () => {
           (!isConcertinaPressed && !isUndulatedPressed && !isInchwormPressed)}
       />
       <Text>Value: {SpeedSliderValue}</Text>
+        */}
     </View>
   );
 };
@@ -399,7 +401,7 @@ const styles = StyleSheet.create({
 
   },
   titleMode: {
-    fontSize: 30,
+    fontSize: 10,
     fontWeight: 'bold',
     marginBottom: 16,
     marginTop: 16
@@ -407,9 +409,9 @@ const styles = StyleSheet.create({
   },
 
   subTitle: {
-    fontSize: 16,
+    fontSize: 10,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 5,
     marginTop: 10,
     marginRight: 200,
 
@@ -418,9 +420,9 @@ const styles = StyleSheet.create({
 
   button: {
     backgroundColor: '#2196F3',
-    padding: 12,
+    padding: 10,
     borderRadius: 8,
-    marginVertical: 8,
+    marginVertical: 6,
     marginHorizontal: 15,
   },
 
